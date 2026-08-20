@@ -1,0 +1,33 @@
+name: TDS GA7 Release Gate
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: TDS identity: 23f3001021@ds.study.iitm.ac.in
+        run: echo "23f3001021@ds.study.iitm.ac.in"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Test release gate
+        run: |
+          python -m py_compile app.py
+          python -c "from app import app; print('release-gate OK')"
