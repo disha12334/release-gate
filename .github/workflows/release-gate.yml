@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: TDS identity: 23f3001021@ds.study.iitm.ac.in
-        run: echo "23f3001021@ds.study.iitm.ac.in"
+        run: echo "TDS identity: 23f3001021@ds.study.iitm.ac.in"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,7 +27,58 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Test release gate
+      - name: Test application
         run: |
-          python -m py_compile app.py
-          python -c "from app import app; print('release-gate OK')"
+          python - <<'PY'
+          from fastapi.testclient import TestClient
+          from app import app
+
+          client = TestClient(app)
+
+          payload = {
+              "target": "production",
+              "event": "push",
+              "ref": "refs/heads/main",
+              "workflow": {
+                  "trigger": "push",
+                  "permissions": {
+                      "contents": "read",
+                      "packages": "write",
+                      "id-token": "none"
+                  },
+                  "testsPassed": True,
+                  "matrixComplete": True,
+                  "failFast": False,
+                  "environmentApproval": True,
+                  "actions": [
+                      {
+                          "owner": "actions",
+                          "name": "checkout",
+                          "ref": "v4"
+                      },
+                      {
+                          "owner": "thirdparty",
+                          "name": "test",
+                          "ref": "0123456789abcdef0123456789abcdef01234567"
+                      }
+                  ]
+              },
+              "image": {
+                  "multiStage": True,
+                  "runsAsRoot": False,
+                  "secretMode": "none",
+                  "criticalVulnerabilities": 0,
+                  "digestPinned": True
+              }
+          }
+
+          response = client.post("/release-gate", json=payload)
+
+          assert response.status_code == 200
+          assert response.json() == {
+              "decision": "promote",
+              "violations": []
+          }
+
+          print("Release gate test passed")
+          PY
