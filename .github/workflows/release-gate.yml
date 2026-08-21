@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: TDS identity: 23f3001021@ds.study.iitm.ac.in
+      - name: "TDS identity: 23f3001021@ds.study.iitm.ac.in"
         run: echo "TDS identity: 23f3001021@ds.study.iitm.ac.in"
 
       - name: Checkout
@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Test application
+      - name: Test release gate
         run: |
           python - <<'PY'
           from fastapi.testclient import TestClient
